@@ -1,0 +1,30 @@
+notifications:
+  email: false
+
+language: java
+
+services:
+  - docker
+
+env:
+  - img=existdb/existdb:release
+
+before_install:
+  # - export JAVA_HOME=/usr/lib/jvm/java-8-oracle
+  - docker pull $img
+  - docker create  --name exist-ci -p 8080:8080 $img
+
+install:
+  - ant
+
+before_script:
+  - docker cp ./build/*.xar exist-ci:exist/autodeploy
+  - docker start exist-ci
+  # exist needs time
+  - sleep 30
+
+script:
+  - curl http://localhost:8080/exist/apps/eXide/index.html
+
+after_success:
+  - docker ps
